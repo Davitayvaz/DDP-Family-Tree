@@ -21,10 +21,9 @@
   *{ box-sizing:border-box; }
   html,body{ margin:0; height:100%; }
   body{ font-family:'Inter', system-ui, sans-serif; background:var(--paper); color:var(--ink); }
-
   .toolbar{ display:flex; align-items:center; justify-content:space-between; padding:14px 22px; background:var(--pine-dark); color:var(--paper-light); position:sticky; top:0; z-index:30; flex-wrap:wrap; gap:10px; }
   .brand{ font-family:'Fraunces', Georgia, serif; font-size:20px; font-weight:600; letter-spacing:.02em; margin:0; }
-  .toolbar-actions{ display:flex; gap:10px; flex-wrap:wrap; }
+  .toolbar-actions{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
   button, .file-btn{ font-family:inherit; font-size:13px; font-weight:600; padding:8px 14px; border-radius:6px; border:1px solid transparent; cursor:pointer; background:var(--paper-light); color:var(--pine-dark); transition: background .15s ease, transform .1s ease; }
   button:hover, .file-btn:hover{ background:#fff; transform:translateY(-1px); }
   button.danger{ background:transparent; border-color:rgba(255,255,255,.4); color:var(--paper-light); }
@@ -32,13 +31,10 @@
   .file-btn{ position:relative; overflow:hidden; display:inline-block; }
   /* visually-hidden file input trick so iOS Safari's picker still works */
   .file-btn input[type=file]{ position:absolute; inset:0; opacity:0; cursor:pointer; }
-
   .hint-bar{ padding:8px 22px; font-size:12.5px; color:var(--ink-soft); background:var(--paper-light); border-bottom:1px solid var(--border); }
-
   .viewport{ height:calc(100vh - 92px); overflow:auto; background-image: radial-gradient(circle, var(--border) 1px, transparent 1px); background-size:22px 22px; }
   .canvas{ position:relative; width:3000px; height:2000px; }
   .empty-hint{ position:absolute; top:40px; left:40px; font-family:'Fraunces',serif; font-style:italic; color:var(--ink-soft); font-size:16px; pointer-events:none; }
-
   svg#edgesLayer{ position:absolute; inset:0; width:100%; height:100%; overflow:visible; pointer-events:none; }
   .edge-line{ stroke:var(--pine); stroke-width:2.5; fill:none; }
   .edge-hit{ stroke:transparent; stroke-width:16; fill:none; pointer-events:stroke; cursor:pointer; }
@@ -47,7 +43,6 @@
   .edge-delete{ cursor:pointer; pointer-events:all; }
   .edge-delete circle{ fill:var(--berry); }
   .edge-delete text{ fill:#fff; font-size:13px; font-family:inherit; }
-
   .edge-label-fo, .edge-toolbar-fo{ overflow:visible; pointer-events:auto; }
   .edge-label{ width:100%; height:100%; box-sizing:border-box; display:flex; align-items:center; justify-content:center; text-align:center; background:var(--card); border:1px solid var(--border); border-radius:5px; padding:2px 8px; font-family:'Fraunces',serif; font-size:11.5px; font-weight:600; color:var(--ink); box-shadow:0 1px 2px rgba(43,36,32,.15); cursor:text; outline:none; overflow:hidden; }
   .edge-label:empty::before{ content:attr(data-placeholder); color:#B9AD97; font-style:italic; font-weight:400; }
@@ -57,48 +52,66 @@
   .edge-toolbar button:hover{ background:#fff; }
   .edge-toolbar button.active{ background:var(--pine); color:#fff; border-color:var(--pine); }
   .edge-toolbar-delete{ background:var(--berry) !important; color:#fff !important; border-color:var(--berry) !important; }
-
   .node{ position:absolute; width:170px; min-height:76px; background:var(--card); border:1.5px solid var(--border); border-radius:8px; padding:10px 12px; box-shadow:0 1px 3px rgba(43,36,32,.12); cursor:grab; }
   .node.dragging{ cursor:grabbing; box-shadow:0 6px 16px rgba(43,36,32,.2); }
+  .node.multi-selected{ outline:3px solid var(--pine); outline-offset:2px; }
+  .node.bw{ filter:grayscale(1); }
+  .node.no-outline{ border-color:transparent; }
   .node-name{ font-family:'Fraunces',serif; font-weight:600; font-size:15px; line-height:1.3; outline:none; }
   .node-name.editing, .node-note.editing{ background:#fff; box-shadow:0 0 0 2px var(--pine) inset; border-radius:3px; }
   .node-note{ font-size:12px; color:var(--ink-soft); margin-top:3px; outline:none; min-height:14px; }
   .node-note:empty::before{ content:attr(data-placeholder); color:#B9AD97; font-style:italic; }
   .node-delete{ position:absolute; top:-8px; right:-8px; width:20px; height:20px; border-radius:50%; border:none; background:var(--berry); color:#fff; font-size:13px; line-height:1; cursor:pointer; opacity:0; transition:opacity .15s ease; padding:0; }
   .node:hover .node-delete{ opacity:1; }
+  .node-menu-btn{ position:absolute; top:-8px; left:-8px; width:20px; height:20px; border-radius:50%; border:none; background:var(--ink-soft); color:#fff; font-size:12px; line-height:1; cursor:pointer; opacity:0; transition:opacity .15s ease; padding:0; }
+  .node:hover .node-menu-btn, .node.menu-open .node-menu-btn{ opacity:1; }
+  .node-menu{ position:absolute; top:18px; left:-4px; width:196px; background:#fff; border:1px solid var(--border); border-radius:8px; box-shadow:0 8px 22px rgba(43,36,32,.28); padding:12px; z-index:5; font-size:12.5px; cursor:default; }
+  .node-menu-title{ font-family:'Fraunces',serif; font-weight:600; font-size:12px; color:var(--ink-soft); margin-bottom:8px; }
+  .node-menu label{ display:flex; align-items:center; gap:7px; margin-bottom:8px; cursor:pointer; color:var(--ink); }
+  .node-menu label:last-child{ margin-bottom:0; }
+  .swatches{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; align-items:center; }
+  .swatch{ width:20px; height:20px; border-radius:5px; border:1.5px solid var(--border); cursor:pointer; padding:0; }
+  .swatch.active{ border-color:var(--pine); box-shadow:0 0 0 2px var(--pine); }
+  .swatches input[type=color]{ width:24px; height:20px; border:1.5px solid var(--border); border-radius:5px; padding:0; background:none; cursor:pointer; }
   .handle{ position:absolute; width:14px; height:14px; border-radius:50%; background:var(--pine); border:2px solid var(--paper-light); left:50%; transform:translateX(-50%); cursor:crosshair; }
   .handle-bottom{ bottom:-7px; }
   .handle:hover{ background:var(--pine-dark); }
-
   .node-photo{ width:100%; height:64px; border-radius:6px; overflow:hidden; background:rgba(43,36,32,.06); display:flex; align-items:center; justify-content:center; margin-bottom:6px; cursor:pointer; position:relative; }
   .node-photo img{ width:100%; height:100%; object-fit:cover; display:block; }
   .photo-placeholder{ font-size:11px; color:var(--ink-soft); font-style:italic; }
   .photo-remove{ position:absolute; top:2px; right:2px; width:16px; height:16px; border-radius:50%; border:none; background:var(--berry); color:#fff; font-size:10px; line-height:1; cursor:pointer; opacity:0; transition:opacity .15s ease; padding:0; }
   .node-photo:hover .photo-remove{ opacity:1; }
-
-  .node-transparent{ position:absolute; top:-8px; left:-8px; width:20px; height:20px; border-radius:50%; border:none; background:var(--pine); color:#fff; font-size:11px; cursor:pointer; opacity:0; transition:opacity .15s ease; padding:0; }
-  .node:hover .node-transparent{ opacity:1; }
-  .node.transparent{ background:transparent; box-shadow:none; border-style:dashed; border-color:rgba(61,90,69,.45); }
+  .node.transparent{ background:transparent !important; box-shadow:none; border-style:dashed; border-color:rgba(61,90,69,.45); }
+  .node.transparent.no-outline{ border-color:transparent; }
   .node.transparent .node-name, .node.transparent .node-note{ text-shadow:0 1px 3px rgba(255,255,255,.9), 0 0 6px rgba(255,255,255,.7); }
-
+  .color-popover-wrap{ position:relative; display:inline-block; }
+  .color-popover{ display:none; position:absolute; top:calc(100% + 6px); left:0; width:210px; background:#fff; border:1px solid var(--border); border-radius:8px; box-shadow:0 8px 22px rgba(43,36,32,.28); padding:12px; z-index:50; }
+  .color-popover.open{ display:block; }
+  .color-popover .swatches{ margin-bottom:6px; }
+  .color-popover-reset{ width:100%; margin-top:2px; }
+  .select-rect{ position:absolute; border:1.5px dashed var(--pine); background:rgba(61,90,69,.1); pointer-events:none; z-index:26; }
   @media print{
     .toolbar, .hint-bar{ display:none; }
     .viewport{ height:auto; overflow:visible; background-image:none; }
     .canvas{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
     .node{ box-shadow:none; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
     .node.transparent{ border:none; }
-    .handle, .node-delete, .node-transparent, .photo-remove, .edge-delete, .edge-toolbar-fo{ display:none; }
+    .handle, .node-delete, .node-menu-btn, .node-menu, .photo-remove, .edge-delete, .edge-toolbar-fo, .select-rect{ display:none; }
     .empty-hint{ display:none; }
     @page{ size:landscape; margin:12mm; }
   }
 </style>
 </head>
 <body>
-
 <header class="toolbar">
   <h1 class="brand">🌳 Family Tree</h1>
   <div class="toolbar-actions">
     <button id="btnAdd">+ Add person</button>
+    <div class="color-popover-wrap">
+      <button id="btnCanvasColor">🎨 Canvas color</button>
+      <div class="color-popover" id="canvasColorPopover"></div>
+    </div>
+    <button id="btnDeleteSelected" class="danger" style="display:none">Delete selected</button>
     <button id="btnSave">Save file</button>
     <label class="file-btn">Load file<input type="file" id="fileInput" accept=".json" /></label>
     <label class="file-btn">Background image<input type="file" id="bgInput" accept="image/*" /></label>
@@ -107,8 +120,7 @@
     <button id="btnClear" class="danger">Clear all</button>
   </div>
 </header>
-<div class="hint-bar">Double-click the paper to add a person &nbsp;•&nbsp; drag the green dot below a card onto another card to connect parent → child &nbsp;•&nbsp; click a line to pick its style or delete it &nbsp;•&nbsp; double-click a line to label it (married, divorced, etc) &nbsp;•&nbsp; click a card's photo box to add a picture &nbsp;•&nbsp; hover a card and click the small green ◧ to make its background see-through</div>
-
+<div class="hint-bar">Double-click the paper to add a person &nbsp;•&nbsp; drag the green dot below a card onto another card to connect parent → child &nbsp;•&nbsp; click a card's photo box to add a picture &nbsp;•&nbsp; hover a card and click the small ⋮ to change its color, outline, black &amp; white, or see-through &nbsp;•&nbsp; shift-click cards (or shift-drag an empty area) to select several, then drag or delete them together &nbsp;•&nbsp; click a line to pick its style or delete it, double-click a line to label it</div>
 <main class="viewport" id="viewport">
   <div class="canvas" id="canvas">
     <svg id="edgesLayer"></svg>
@@ -116,14 +128,23 @@
   </div>
 </main>
 <input type="file" id="nodePhotoInput" accept="image/*" style="display:none">
-
-
 <script>
   // ---------- state ----------
   const STORAGE_KEY = 'familyTreeData_v1';
   const NODE_W = 170, NODE_H = 76; // default size, used only for initial placement
+  let state = { nodes: [], edges: [], nextId: 1, background: null, canvasColor: null };
+  let selectedIds = new Set();
+  let openMenuNodeId = null;
 
-  let state = { nodes: [], edges: [], nextId: 1, background: null };
+  function normalizeState(){
+    if(typeof state.canvasColor === 'undefined') state.canvasColor = null;
+    state.nodes.forEach(n => {
+      if(typeof n.bgColor === 'undefined') n.bgColor = null;
+      if(typeof n.bw === 'undefined') n.bw = false;
+      if(typeof n.noOutline === 'undefined') n.noOutline = false;
+      if(typeof n.transparent === 'undefined') n.transparent = false;
+    });
+  }
 
   function loadState(){
     try{
@@ -137,6 +158,7 @@
         }
       }
     }catch(e){ console.warn('Could not load saved tree', e); }
+    normalizeState();
   }
   function saveState(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
 
@@ -149,10 +171,13 @@
   const btnSave = document.getElementById('btnSave');
   const btnPrint = document.getElementById('btnPrint');
   const btnClear = document.getElementById('btnClear');
+  const btnDeleteSelected = document.getElementById('btnDeleteSelected');
   const fileInput = document.getElementById('fileInput');
   const bgInput = document.getElementById('bgInput');
   const btnBgRemove = document.getElementById('btnBgRemove');
   const nodePhotoInput = document.getElementById('nodePhotoInput');
+  const btnCanvasColor = document.getElementById('btnCanvasColor');
+  const canvasColorPopover = document.getElementById('canvasColorPopover');
   let pendingImageNodeId = null;
 
   // shrink+compress an uploaded image before storing it, so trees with lots
@@ -179,7 +204,11 @@
     });
   }
 
+  function applyCanvasColor(){
+    canvas.style.backgroundColor = state.canvasColor || '';
+  }
   function applyBackground(){
+    applyCanvasColor();
     if(state.background){
       canvas.style.backgroundImage = `url("${state.background}")`;
       canvas.style.backgroundSize = 'cover';
@@ -190,7 +219,6 @@
     }
     btnBgRemove.style.display = state.background ? 'inline-block' : 'none';
   }
-
   bgInput.addEventListener('change', async e => {
     const file = e.target.files[0];
     if(!file) return;
@@ -201,6 +229,44 @@
     bgInput.value = '';
   });
   btnBgRemove.addEventListener('click', () => { state.background = null; saveState(); applyBackground(); });
+
+  // ---------- canvas background color popover ----------
+  const CANVAS_COLOR_PRESETS = ['#EDE6D6','#F7F2E7','#E4E9E4','#E3ECF2','#F2E7EC','#EAEAEA','#FFF8E7','#2B2420'];
+  function buildCanvasColorPopover(){
+    canvasColorPopover.innerHTML = `
+      <div class="swatches">
+        ${CANVAS_COLOR_PRESETS.map(c => `<button type="button" class="swatch${state.canvasColor===c?' active':''}" data-color="${c}" style="background:${c}"></button>`).join('')}
+        <input type="color" value="${state.canvasColor || '#EDE6D6'}" title="Custom color">
+      </div>
+      <button type="button" class="color-popover-reset">Reset to default</button>
+    `;
+    canvasColorPopover.querySelectorAll('.swatch').forEach(sw => {
+      sw.addEventListener('click', () => {
+        state.canvasColor = sw.dataset.color;
+        saveState(); applyCanvasColor(); buildCanvasColorPopover();
+      });
+    });
+    canvasColorPopover.querySelector('input[type=color]').addEventListener('input', e => {
+      state.canvasColor = e.target.value;
+      applyCanvasColor();
+    });
+    canvasColorPopover.querySelector('input[type=color]').addEventListener('change', () => {
+      saveState(); buildCanvasColorPopover();
+    });
+    canvasColorPopover.querySelector('.color-popover-reset').addEventListener('click', () => {
+      state.canvasColor = null;
+      saveState(); applyCanvasColor(); buildCanvasColorPopover();
+    });
+  }
+  btnCanvasColor.addEventListener('click', e => {
+    e.stopPropagation();
+    canvasColorPopover.classList.toggle('open');
+  });
+  document.addEventListener('mousedown', e => {
+    if(canvasColorPopover.classList.contains('open') && !e.target.closest('.color-popover-wrap')){
+      canvasColorPopover.classList.remove('open');
+    }
+  });
 
   nodePhotoInput.addEventListener('change', async e => {
     const file = e.target.files[0];
@@ -218,14 +284,142 @@
     return (str||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   }
 
+  // ---------- selection ----------
+  function updateSelectionUI(){
+    canvas.querySelectorAll('.node').forEach(el => {
+      el.classList.toggle('multi-selected', selectedIds.size > 1 && selectedIds.has(el.dataset.id));
+    });
+    btnDeleteSelected.style.display = selectedIds.size > 1 ? 'inline-block' : 'none';
+    btnDeleteSelected.textContent = selectedIds.size > 1 ? `Delete selected (${selectedIds.size})` : 'Delete selected';
+  }
+  function clearSelection(){ selectedIds.clear(); updateSelectionUI(); }
+  function toggleSelect(id){
+    if(selectedIds.has(id)) selectedIds.delete(id); else selectedIds.add(id);
+    updateSelectionUI();
+  }
+  function deleteSelected(){
+    if(!selectedIds.size) return;
+    const count = selectedIds.size;
+    if(!confirm(count > 1 ? `Delete ${count} selected people?` : 'Delete this person?')) return;
+    state.nodes = state.nodes.filter(n => !selectedIds.has(n.id));
+    state.edges = state.edges.filter(e => !selectedIds.has(e.from) && !selectedIds.has(e.to));
+    selectedIds.clear();
+    saveState(); render();
+  }
+  btnDeleteSelected.addEventListener('click', deleteSelected);
+  document.addEventListener('keydown', e => {
+    if(document.activeElement && document.activeElement.isContentEditable) return;
+    if((e.key === 'Delete' || e.key === 'Backspace') && selectedIds.size > 1){
+      e.preventDefault();
+      deleteSelected();
+    }
+    if(e.key === 'Escape' && selectedIds.size){ clearSelection(); }
+  });
+
   // ---------- rendering ----------
   function render(){
     canvas.querySelectorAll('.node').forEach(n => n.remove());
+    canvas.querySelectorAll('.select-rect').forEach(n => n.remove());
     edgesSvg.innerHTML = '';
     emptyHint.style.display = state.nodes.length ? 'none' : 'block';
+    openMenuNodeId = null;
     state.nodes.forEach(drawNode);
     drawAllEdges();
+    updateSelectionUI();
   }
+
+  function applyNodeVisuals(node, el){
+    el.classList.toggle('transparent', !!node.transparent);
+    el.classList.toggle('bw', !!node.bw);
+    el.classList.toggle('no-outline', !!node.noOutline);
+    if(node.bgColor && !node.transparent){
+      el.style.background = node.bgColor;
+    } else {
+      el.style.background = '';
+    }
+  }
+
+  const NODE_COLOR_PRESETS = ['#FBF7EE','#FDE2E2','#FDEBD3','#FFF6C9','#DFF3E1','#D9ECF2','#E3DEF5','#F4D9EC'];
+
+  function closeNodeMenu(){
+    if(openMenuNodeId){
+      const el = canvas.querySelector(`.node[data-id="${openMenuNodeId}"]`);
+      if(el){
+        el.classList.remove('menu-open');
+        el.style.zIndex = '';
+        const m = el.querySelector('.node-menu');
+        if(m) m.remove();
+      }
+      openMenuNodeId = null;
+    }
+  }
+
+  function toggleNodeMenu(node, el){
+    if(openMenuNodeId === node.id){ closeNodeMenu(); return; }
+    closeNodeMenu();
+    openMenuNodeId = node.id;
+    el.classList.add('menu-open');
+    el.style.zIndex = '50';
+    const menu = document.createElement('div');
+    menu.className = 'node-menu';
+    menu.innerHTML = `
+      <div class="node-menu-title">Card background</div>
+      <div class="swatches">
+        ${NODE_COLOR_PRESETS.map(c => `<button type="button" class="swatch${node.bgColor===c && !node.transparent?' active':''}" data-color="${c}" style="background:${c}"></button>`).join('')}
+        <input type="color" value="${node.bgColor || '#FBF7EE'}" title="Custom color">
+      </div>
+      <label><input type="checkbox" class="opt-transparent" ${node.transparent?'checked':''}> See-through background</label>
+      <label><input type="checkbox" class="opt-outline" ${node.noOutline?'checked':''}> Remove outline</label>
+      <label><input type="checkbox" class="opt-bw" ${node.bw?'checked':''}> Black &amp; white (deceased)</label>
+    `;
+    el.appendChild(menu);
+    menu.addEventListener('mousedown', e => e.stopPropagation());
+    menu.addEventListener('click', e => e.stopPropagation());
+
+    function refreshSwatchActive(){
+      menu.querySelectorAll('.swatch').forEach(s => s.classList.toggle('active', s.dataset.color === node.bgColor && !node.transparent));
+    }
+    menu.querySelectorAll('.swatch').forEach(sw => {
+      sw.addEventListener('click', () => {
+        node.bgColor = sw.dataset.color;
+        node.transparent = false;
+        menu.querySelector('.opt-transparent').checked = false;
+        saveState();
+        applyNodeVisuals(node, el);
+        refreshSwatchActive();
+      });
+    });
+    const colorInput = menu.querySelector('input[type=color]');
+    colorInput.addEventListener('input', e => {
+      node.bgColor = e.target.value;
+      node.transparent = false;
+      menu.querySelector('.opt-transparent').checked = false;
+      applyNodeVisuals(node, el);
+    });
+    colorInput.addEventListener('change', () => { saveState(); refreshSwatchActive(); });
+    menu.querySelector('.opt-transparent').addEventListener('change', e => {
+      node.transparent = e.target.checked;
+      saveState();
+      applyNodeVisuals(node, el);
+      refreshSwatchActive();
+    });
+    menu.querySelector('.opt-outline').addEventListener('change', e => {
+      node.noOutline = e.target.checked;
+      saveState();
+      applyNodeVisuals(node, el);
+    });
+    menu.querySelector('.opt-bw').addEventListener('change', e => {
+      node.bw = e.target.checked;
+      saveState();
+      applyNodeVisuals(node, el);
+    });
+  }
+
+  document.addEventListener('mousedown', e => {
+    if(openMenuNodeId && !e.target.closest('.node-menu') && !e.target.closest('.node-menu-btn')){
+      closeNodeMenu();
+    }
+  });
 
   function drawNode(node){
     const el = document.createElement('div');
@@ -233,10 +427,9 @@
     el.dataset.id = node.id;
     el.style.left = node.x + 'px';
     el.style.top = node.y + 'px';
-    if(node.transparent) el.classList.add('transparent');
     el.innerHTML = `
       <button class="node-delete" title="Delete person">×</button>
-      <button class="node-transparent" title="Toggle see-through background">◧</button>
+      <button class="node-menu-btn" title="Card options">⋮</button>
       <div class="node-photo" title="Click to add a photo">
         ${node.image
           ? `<img src="${node.image}"><button class="photo-remove" title="Remove photo">×</button>`
@@ -247,16 +440,27 @@
       <div class="handle handle-bottom" title="Drag to connect a child"></div>
     `;
     canvas.appendChild(el);
+    applyNodeVisuals(node, el);
 
     el.addEventListener('mousedown', e => {
-      if(e.target.closest('.handle') || e.target.closest('.node-delete') || e.target.closest('.node-transparent') || e.target.closest('.node-photo') || e.target.isContentEditable) return;
-      startNodeDrag(e, node, el);
+      if(e.target.closest('.handle') || e.target.closest('.node-delete') || e.target.closest('.node-menu-btn') || e.target.closest('.node-menu') || e.target.closest('.node-photo') || e.target.isContentEditable) return;
+      if(e.shiftKey){
+        e.stopPropagation();
+        toggleSelect(node.id);
+        return;
+      }
+      if(selectedIds.size > 1 && selectedIds.has(node.id)){
+        startGroupDrag(e);
+      } else {
+        selectedIds = new Set([node.id]);
+        updateSelectionUI();
+        startNodeDrag(e, node, el);
+      }
     });
     el.querySelector('.node-delete').addEventListener('click', e => { e.stopPropagation(); deleteNode(node.id); });
-    el.querySelector('.node-transparent').addEventListener('click', e => {
+    el.querySelector('.node-menu-btn').addEventListener('click', e => {
       e.stopPropagation();
-      node.transparent = !node.transparent;
-      saveState(); render();
+      toggleNodeMenu(node, el);
     });
     const photoBox = el.querySelector('.node-photo');
     photoBox.addEventListener('click', e => {
@@ -269,12 +473,10 @@
     if(photoRemove){
       photoRemove.addEventListener('click', e => { e.stopPropagation(); node.image = null; saveState(); render(); });
     }
-
     const nameEl = el.querySelector('.node-name');
     nameEl.addEventListener('dblclick', e => { e.stopPropagation(); enterEdit(nameEl, node, 'name'); });
     const noteEl = el.querySelector('.node-note');
     noteEl.addEventListener('dblclick', e => { e.stopPropagation(); enterEdit(noteEl, node, 'note'); });
-
     el.querySelector('.handle-bottom').addEventListener('mousedown', e => {
       e.stopPropagation();
       startConnectionDrag(e, node);
@@ -324,6 +526,91 @@
     document.addEventListener('mouseup', onUp);
   }
 
+  function startGroupDrag(e){
+    e.preventDefault();
+    const startX = e.clientX, startY = e.clientY;
+    const ids = Array.from(selectedIds);
+    const startPositions = {};
+    ids.forEach(id => {
+      const n = state.nodes.find(x => x.id === id);
+      if(n) startPositions[id] = { x: n.x, y: n.y };
+      const el = canvas.querySelector(`.node[data-id="${id}"]`);
+      if(el) el.classList.add('dragging');
+    });
+    function onMove(ev){
+      const dx = ev.clientX - startX, dy = ev.clientY - startY;
+      ids.forEach(id => {
+        const n = state.nodes.find(x => x.id === id);
+        const start = startPositions[id];
+        if(!n || !start) return;
+        n.x = Math.max(0, start.x + dx);
+        n.y = Math.max(0, start.y + dy);
+        const el = canvas.querySelector(`.node[data-id="${id}"]`);
+        if(el){ el.style.left = n.x + 'px'; el.style.top = n.y + 'px'; }
+      });
+      drawAllEdges();
+    }
+    function onUp(){
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+      ids.forEach(id => {
+        const el = canvas.querySelector(`.node[data-id="${id}"]`);
+        if(el) el.classList.remove('dragging');
+      });
+      saveState();
+    }
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  }
+
+  // ---------- rectangle (shift-drag) selection ----------
+  function startRectSelect(e){
+    e.preventDefault();
+    const rect = canvas.getBoundingClientRect();
+    const startX = e.clientX - rect.left, startY = e.clientY - rect.top;
+    const box = document.createElement('div');
+    box.className = 'select-rect';
+    canvas.appendChild(box);
+    function update(x2, y2){
+      box.style.left = Math.min(startX, x2) + 'px';
+      box.style.top = Math.min(startY, y2) + 'px';
+      box.style.width = Math.abs(x2 - startX) + 'px';
+      box.style.height = Math.abs(y2 - startY) + 'px';
+    }
+    update(startX, startY);
+    function onMove(ev){
+      const r = canvas.getBoundingClientRect();
+      update(ev.clientX - r.left, ev.clientY - r.top);
+    }
+    function onUp(ev){
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+      const r = canvas.getBoundingClientRect();
+      const x2 = ev.clientX - r.left, y2 = ev.clientY - r.top;
+      const bx1 = Math.min(startX, x2), bx2 = Math.max(startX, x2);
+      const by1 = Math.min(startY, y2), by2 = Math.max(startY, y2);
+      state.nodes.forEach(n => {
+        const el = canvas.querySelector(`.node[data-id="${n.id}"]`);
+        const w = el ? el.offsetWidth : NODE_W, h = el ? el.offsetHeight : NODE_H;
+        const cx = n.x + w / 2, cy = n.y + h / 2;
+        if(cx >= bx1 && cx <= bx2 && cy >= by1 && cy <= by2){ selectedIds.add(n.id); }
+      });
+      updateSelectionUI();
+      box.remove();
+    }
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  }
+
+  canvas.addEventListener('mousedown', e => {
+    if(e.target.closest('.node') || e.target.closest('svg')) return;
+    if(e.shiftKey){
+      startRectSelect(e);
+    } else if(selectedIds.size){
+      clearSelection();
+    }
+  });
+
   // ---------- edges ----------
   function nodeEl(node){ return canvas.querySelector(`.node[data-id="${node.id}"]`); }
   function nodeCenterBottom(node){
@@ -334,18 +621,15 @@
     const el = nodeEl(node); const w = el ? el.offsetWidth : NODE_W;
     return { x: node.x + w/2, y: node.y };
   }
-
   function drawAllEdges(){
     edgesSvg.innerHTML = '';
     state.edges.forEach(drawEdge);
   }
-
   function pathFor(p0, p2){
     // used only for the temporary preview line while dragging a new connection
     const midY = (p0.y + p2.y) / 2;
     return `M ${p0.x} ${p0.y} C ${p0.x} ${midY}, ${p2.x} ${midY}, ${p2.x} ${p2.y}`;
   }
-
   function pathForStyle(p0, p2, style){
     switch(style){
       case 'straight':
@@ -372,7 +656,6 @@
       }
     }
   }
-
   let selectedEdgeId = null;
   const LINE_STYLES = [
     { key: 'curve', label: 'Curvy' },
@@ -380,12 +663,10 @@
     { key: 'zigzag', label: 'Zigzag' },
     { key: 'square', label: '90°' }
   ];
-
   function toggleSelectEdge(id){
     selectedEdgeId = (selectedEdgeId === id) ? null : id;
     drawAllEdges();
   }
-
   function drawEdge(edge){
     const from = state.nodes.find(n => n.id === edge.from);
     const to = state.nodes.find(n => n.id === edge.to);
@@ -402,14 +683,11 @@
     g.appendChild(line); g.appendChild(hit);
     hit.addEventListener('click', e => { e.stopPropagation(); toggleSelectEdge(edge.id); });
     edgesSvg.appendChild(g);
-
     const len = line.getTotalLength();
     const mid = len ? line.getPointAtLength(len / 2) : { x: (nodeCenterBottom(from).x), y: (nodeCenterBottom(from).y + nodeCenterTop(to).y) / 2 };
-
     if(edge.label || isSelected) drawEdgeLabel(edge, mid);
     if(isSelected) drawEdgeToolbar(edge, mid);
   }
-
   function drawEdgeLabel(edge, mid){
     const w = 150, h = 30;
     const fo = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject');
@@ -425,7 +703,6 @@
     div.textContent = edge.label || '';
     fo.appendChild(div);
     edgesSvg.appendChild(fo);
-
     div.addEventListener('mousedown', e => e.stopPropagation());
     div.addEventListener('dblclick', e => {
       e.stopPropagation();
@@ -443,7 +720,6 @@
       drawAllEdges();
     });
   }
-
   function drawEdgeToolbar(edge, mid){
     const w = 236, h = 30;
     const fo = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject');
@@ -459,7 +735,6 @@
     ).join('') + `<button type="button" class="edge-toolbar-delete" title="Delete this connection">×</button>`;
     fo.appendChild(div);
     edgesSvg.appendChild(fo);
-
     div.addEventListener('mousedown', e => e.stopPropagation());
     div.querySelectorAll('button[data-style]').forEach(btn => {
       btn.addEventListener('click', e => {
@@ -473,7 +748,6 @@
       deleteEdge(edge.id);
     });
   }
-
   function clearEdgeSelection(){
     if(selectedEdgeId){ selectedEdgeId = null; drawAllEdges(); }
   }
@@ -482,13 +756,12 @@
       clearEdgeSelection();
     }
   });
-
   function deleteEdge(id){ state.edges = state.edges.filter(e => e.id !== id); saveState(); drawAllEdges(); }
   function edgeExists(a, b){ return state.edges.some(e => e.from === a && e.to === b); }
-
   function deleteNode(id){
     state.nodes = state.nodes.filter(n => n.id !== id);
     state.edges = state.edges.filter(e => e.from !== id && e.to !== id);
+    selectedIds.delete(id);
     saveState(); render();
   }
 
@@ -523,7 +796,7 @@
 
   // ---------- adding people ----------
   function addNode(x, y, name = 'New person'){
-    const node = { id: 'n' + (state.nextId++), x, y, name, note: '', image: null, transparent: false };
+    const node = { id: 'n' + (state.nextId++), x, y, name, note: '', image: null, transparent: false, bgColor: null, bw: false, noOutline: false };
     state.nodes.push(node);
     saveState(); render();
     requestAnimationFrame(() => {
@@ -533,7 +806,6 @@
     });
     return node;
   }
-
   canvas.addEventListener('dblclick', e => {
     if(e.target.closest('.node')) return;
     const rect = canvas.getBoundingClientRect();
@@ -541,7 +813,6 @@
     const y = Math.max(0, e.clientY - rect.top - NODE_H / 2);
     addNode(x, y);
   });
-
   btnAdd.addEventListener('click', () => {
     const x = viewport.scrollLeft + viewport.clientWidth / 2 - NODE_W / 2;
     const y = viewport.scrollTop + viewport.clientHeight / 2 - NODE_H / 2;
@@ -557,7 +828,6 @@
     document.body.appendChild(a); a.click(); a.remove();
     URL.revokeObjectURL(url);
   });
-
   fileInput.addEventListener('change', e => {
     const file = e.target.files[0];
     if(!file) return;
@@ -570,7 +840,9 @@
           if(typeof state.nextId !== 'number') state.nextId = state.nodes.length + state.edges.length + 1;
           if(typeof state.background === 'undefined') state.background = null;
           state.edges.forEach(e => { if(!e.style) e.style = 'curve'; if(typeof e.label !== 'string') e.label = ''; });
-          saveState(); applyBackground(); render();
+          normalizeState();
+          selectedIds.clear();
+          saveState(); applyBackground(); buildCanvasColorPopover(); render();
         } else {
           alert('That file does not look like a family tree export.');
         }
@@ -579,11 +851,11 @@
     reader.readAsText(file);
     fileInput.value = '';
   });
-
   btnClear.addEventListener('click', () => {
     if(confirm('Clear the entire tree? This cannot be undone unless you saved a file first.')){
-      state = { nodes: [], edges: [], nextId: 1, background: null };
-      saveState(); applyBackground(); render();
+      state = { nodes: [], edges: [], nextId: 1, background: null, canvasColor: null };
+      selectedIds.clear();
+      saveState(); applyBackground(); buildCanvasColorPopover(); render();
     }
   });
 
@@ -611,6 +883,7 @@
   // ---------- init ----------
   loadState();
   applyBackground();
+  buildCanvasColorPopover();
   render();
 </script>
 </body>
