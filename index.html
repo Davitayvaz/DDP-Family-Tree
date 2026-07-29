@@ -28,12 +28,16 @@
   button:hover, .file-btn:hover{ background:#fff; transform:translateY(-1px); }
   button.danger{ background:transparent; border-color:rgba(255,255,255,.4); color:var(--paper-light); }
   button.danger:hover{ background:var(--berry); border-color:var(--berry); color:#fff; }
+  button.danger-mini{ background:var(--berry); color:#fff; border-color:var(--berry); padding:6px 10px; font-size:12px; }
+  button.danger-mini:hover{ background:#5f2e2e; }
   .file-btn{ position:relative; overflow:hidden; display:inline-block; }
   /* visually-hidden file input trick so iOS Safari's picker still works */
   .file-btn input[type=file]{ position:absolute; inset:0; opacity:0; cursor:pointer; }
-  .hint-bar{ padding:8px 22px; font-size:12.5px; color:var(--ink-soft); background:var(--paper-light); border-bottom:1px solid var(--border); }
-  .viewport{ height:calc(100vh - 92px); overflow:auto; background-image: radial-gradient(circle, var(--border) 1px, transparent 1px); background-size:22px 22px; }
-  .canvas{ position:relative; width:3000px; height:2000px; }
+  .zoom-controls{ display:flex; align-items:center; gap:2px; background:rgba(255,255,255,.08); border-radius:6px; padding:2px; }
+  .zoom-controls button{ padding:6px 10px; }
+  .zoom-label{ font-size:12.5px; font-weight:600; min-width:44px; text-align:center; color:var(--paper-light); }
+  .viewport{ height:calc(100vh - 62px); overflow:auto; background-image: radial-gradient(circle, var(--border) 1px, transparent 1px); background-size:22px 22px; }
+  .canvas{ position:relative; width:3000px; height:2000px; transform-origin:0 0; }
   .empty-hint{ position:absolute; top:40px; left:40px; font-family:'Fraunces',serif; font-style:italic; color:var(--ink-soft); font-size:16px; pointer-events:none; }
   svg#edgesLayer{ position:absolute; inset:0; width:100%; height:100%; overflow:visible; pointer-events:none; }
   .edge-line{ stroke:var(--pine); stroke-width:2.5; fill:none; }
@@ -57,30 +61,33 @@
   .node.multi-selected{ outline:3px solid var(--pine); outline-offset:2px; }
   .node.bw{ filter:grayscale(1); }
   .node.no-outline{ border-color:transparent; }
+  .node-content{ width:100%; height:100%; overflow:hidden; }
   .node-name{ font-family:'Fraunces',serif; font-weight:600; font-size:15px; line-height:1.3; outline:none; }
   .node-name.editing, .node-note.editing{ background:#fff; box-shadow:0 0 0 2px var(--pine) inset; border-radius:3px; }
   .node-note{ font-size:12px; color:var(--ink-soft); margin-top:3px; outline:none; min-height:14px; }
   .node-note:empty::before{ content:attr(data-placeholder); color:#B9AD97; font-style:italic; }
-  .node-delete{ position:absolute; top:-8px; right:-8px; width:20px; height:20px; border-radius:50%; border:none; background:var(--berry); color:#fff; font-size:13px; line-height:1; cursor:pointer; opacity:0; transition:opacity .15s ease; padding:0; }
+  .node-photo-thumb{ width:100%; height:56px; border-radius:6px; overflow:hidden; margin-bottom:6px; background:rgba(43,36,32,.06); cursor:pointer; }
+  .node-photo-thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .node-delete{ position:absolute; top:-8px; right:-8px; width:20px; height:20px; border-radius:50%; border:none; background:var(--berry); color:#fff; font-size:13px; line-height:1; cursor:pointer; opacity:0; transition:opacity .15s ease; padding:0; z-index:2; }
   .node:hover .node-delete{ opacity:1; }
-  .node-menu-btn{ position:absolute; top:-8px; left:-8px; width:20px; height:20px; border-radius:50%; border:none; background:var(--ink-soft); color:#fff; font-size:12px; line-height:1; cursor:pointer; opacity:0; transition:opacity .15s ease; padding:0; }
+  .node-menu-btn{ position:absolute; top:-8px; left:-8px; width:20px; height:20px; border-radius:50%; border:none; background:var(--ink-soft); color:#fff; font-size:12px; line-height:1; cursor:pointer; opacity:0; transition:opacity .15s ease; padding:0; z-index:2; }
   .node:hover .node-menu-btn, .node.menu-open .node-menu-btn{ opacity:1; }
-  .node-menu{ position:absolute; top:18px; left:-4px; width:196px; background:#fff; border:1px solid var(--border); border-radius:8px; box-shadow:0 8px 22px rgba(43,36,32,.28); padding:12px; z-index:5; font-size:12.5px; cursor:default; }
+  .node-menu{ position:absolute; top:18px; left:-4px; width:206px; background:#fff; border:1px solid var(--border); border-radius:8px; box-shadow:0 8px 22px rgba(43,36,32,.28); padding:12px; z-index:5; font-size:12.5px; cursor:default; }
   .node-menu-title{ font-family:'Fraunces',serif; font-weight:600; font-size:12px; color:var(--ink-soft); margin-bottom:8px; }
+  .node-menu-title:not(:first-child){ margin-top:4px; }
   .node-menu label{ display:flex; align-items:center; gap:7px; margin-bottom:8px; cursor:pointer; color:var(--ink); }
   .node-menu label:last-child{ margin-bottom:0; }
+  .node-menu-photo-row{ display:flex; gap:6px; margin-bottom:10px; }
   .swatches{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; align-items:center; }
   .swatch{ width:20px; height:20px; border-radius:5px; border:1.5px solid var(--border); cursor:pointer; padding:0; }
   .swatch.active{ border-color:var(--pine); box-shadow:0 0 0 2px var(--pine); }
   .swatches input[type=color]{ width:24px; height:20px; border:1.5px solid var(--border); border-radius:5px; padding:0; background:none; cursor:pointer; }
-  .handle{ position:absolute; width:14px; height:14px; border-radius:50%; background:var(--pine); border:2px solid var(--paper-light); left:50%; transform:translateX(-50%); cursor:crosshair; }
+  .handle{ position:absolute; width:14px; height:14px; border-radius:50%; background:var(--pine); border:2px solid var(--paper-light); left:50%; transform:translateX(-50%); cursor:crosshair; z-index:2; }
   .handle-bottom{ bottom:-7px; }
   .handle:hover{ background:var(--pine-dark); }
-  .node-photo{ width:100%; height:64px; border-radius:6px; overflow:hidden; background:rgba(43,36,32,.06); display:flex; align-items:center; justify-content:center; margin-bottom:6px; cursor:pointer; position:relative; }
-  .node-photo img{ width:100%; height:100%; object-fit:cover; display:block; }
-  .photo-placeholder{ font-size:11px; color:var(--ink-soft); font-style:italic; }
-  .photo-remove{ position:absolute; top:2px; right:2px; width:16px; height:16px; border-radius:50%; border:none; background:var(--berry); color:#fff; font-size:10px; line-height:1; cursor:pointer; opacity:0; transition:opacity .15s ease; padding:0; }
-  .node-photo:hover .photo-remove{ opacity:1; }
+  .resize-handle{ position:absolute; right:-2px; bottom:-2px; width:16px; height:16px; cursor:nwse-resize; opacity:0; transition:opacity .15s ease; z-index:2; }
+  .resize-handle::before{ content:''; position:absolute; right:3px; bottom:3px; width:8px; height:8px; border-right:2px solid var(--ink-soft); border-bottom:2px solid var(--ink-soft); border-radius:0 0 3px 0; }
+  .node:hover .resize-handle{ opacity:1; }
   .node.transparent{ background:transparent !important; box-shadow:none; border-style:dashed; border-color:rgba(61,90,69,.45); }
   .node.transparent.no-outline{ border-color:transparent; }
   .node.transparent .node-name, .node.transparent .node-note{ text-shadow:0 1px 3px rgba(255,255,255,.9), 0 0 6px rgba(255,255,255,.7); }
@@ -90,13 +97,21 @@
   .color-popover .swatches{ margin-bottom:6px; }
   .color-popover-reset{ width:100%; margin-top:2px; }
   .select-rect{ position:absolute; border:1.5px dashed var(--pine); background:rgba(61,90,69,.1); pointer-events:none; z-index:26; }
+  .modal-overlay{ display:none; position:fixed; inset:0; background:rgba(43,36,32,.45); z-index:100; align-items:center; justify-content:center; }
+  .modal-overlay.open{ display:flex; }
+  .modal-box{ background:#fff; border-radius:10px; max-width:480px; width:90%; max-height:80vh; overflow:auto; padding:26px 28px; position:relative; box-shadow:0 20px 60px rgba(0,0,0,.3); }
+  .modal-box h2{ font-family:'Fraunces',serif; margin:0 0 14px; font-size:20px; color:var(--pine-dark); }
+  .modal-box ul{ padding-left:18px; margin:0; }
+  .modal-box li{ margin-bottom:11px; line-height:1.5; font-size:13.5px; color:var(--ink); }
+  .modal-box li:last-child{ margin-bottom:0; }
+  .modal-close{ position:absolute; top:12px; right:12px; width:28px; height:28px; border-radius:50%; border:none; background:var(--paper-light); color:var(--pine-dark); font-size:16px; cursor:pointer; padding:0; }
   @media print{
-    .toolbar, .hint-bar{ display:none; }
+    .toolbar, .modal-overlay{ display:none !important; }
     .viewport{ height:auto; overflow:visible; background-image:none; }
     .canvas{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
     .node{ box-shadow:none; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
     .node.transparent{ border:none; }
-    .handle, .node-delete, .node-menu-btn, .node-menu, .photo-remove, .edge-delete, .edge-toolbar-fo, .select-rect{ display:none; }
+    .handle, .node-delete, .node-menu-btn, .node-menu, .resize-handle, .edge-delete, .edge-toolbar-fo, .select-rect{ display:none; }
     .empty-hint{ display:none; }
     @page{ size:landscape; margin:12mm; }
   }
@@ -106,7 +121,14 @@
 <header class="toolbar">
   <h1 class="brand">🌳 Family Tree</h1>
   <div class="toolbar-actions">
+    <button id="btnHelp" title="How to use this">📖 Help</button>
     <button id="btnAdd">+ Add person</button>
+    <div class="zoom-controls">
+      <button id="btnZoomOut" title="Zoom out">－</button>
+      <span class="zoom-label" id="zoomLabel">100%</span>
+      <button id="btnZoomIn" title="Zoom in">＋</button>
+      <button id="btnZoomReset" title="Reset zoom">Reset</button>
+    </div>
     <div class="color-popover-wrap">
       <button id="btnCanvasColor">🎨 Canvas color</button>
       <div class="color-popover" id="canvasColorPopover"></div>
@@ -120,7 +142,6 @@
     <button id="btnClear" class="danger">Clear all</button>
   </div>
 </header>
-<div class="hint-bar">Double-click the paper to add a person &nbsp;•&nbsp; drag the green dot below a card onto another card to connect parent → child &nbsp;•&nbsp; click a card's photo box to add a picture &nbsp;•&nbsp; hover a card and click the small ⋮ to change its color, outline, black &amp; white, or see-through &nbsp;•&nbsp; shift-click cards (or shift-drag an empty area) to select several, then drag or delete them together &nbsp;•&nbsp; click a line to pick its style or delete it, double-click a line to label it</div>
 <main class="viewport" id="viewport">
   <div class="canvas" id="canvas">
     <svg id="edgesLayer"></svg>
@@ -128,21 +149,49 @@
   </div>
 </main>
 <input type="file" id="nodePhotoInput" accept="image/*" style="display:none">
+
+<div class="modal-overlay" id="helpOverlay">
+  <div class="modal-box">
+    <button class="modal-close" id="helpClose" title="Close">×</button>
+    <h2>How to use this family tree</h2>
+    <ul>
+      <li><strong>Add a person:</strong> double-click empty space on the paper, or click "+ Add person".</li>
+      <li><strong>Move a person:</strong> drag their card.</li>
+      <li><strong>Resize a card:</strong> drag the small corner handle at its bottom-right.</li>
+      <li><strong>Connect parent → child:</strong> drag the green dot under a card onto another card.</li>
+      <li><strong>Edit name or note:</strong> double-click the text.</li>
+      <li><strong>Card options:</strong> hover a card and click the ⋮ button for photo, background color, outline, black &amp; white (for someone who's passed), and see-through.</li>
+      <li><strong>Select several people:</strong> shift-click cards, or shift-drag an empty area to draw a selection box. Drag any selected card to move the group together, or use "Delete selected".</li>
+      <li><strong>Style a connection line:</strong> click it for Curvy / Straight / Zigzag / 90° options, or to delete it.</li>
+      <li><strong>Label a connection:</strong> double-click the line (e.g. "married", "divorced").</li>
+      <li><strong>Zoom:</strong> use the +/− buttons, or hold Ctrl (⌘ on Mac) and scroll.</li>
+      <li><strong>Canvas background:</strong> pick a color, or upload a background image.</li>
+      <li><strong>Save your work:</strong> "Save file" downloads a .json you can reload later with "Load file". The tree also autosaves in this browser.</li>
+      <li><strong>Print:</strong> "Print" auto-crops to your tree, switches to landscape, and uses whatever zoom level you were last on.</li>
+    </ul>
+  </div>
+</div>
+
 <script>
   // ---------- state ----------
   const STORAGE_KEY = 'familyTreeData_v1';
   const NODE_W = 170, NODE_H = 76; // default size, used only for initial placement
-  let state = { nodes: [], edges: [], nextId: 1, background: null, canvasColor: null };
+  const ZOOM_MIN = 0.25, ZOOM_MAX = 2.5, ZOOM_STEP = 0.1;
+  let state = { nodes: [], edges: [], nextId: 1, background: null, canvasColor: null, zoom: 1 };
   let selectedIds = new Set();
   let openMenuNodeId = null;
+  let zoom = 1;
 
   function normalizeState(){
     if(typeof state.canvasColor === 'undefined') state.canvasColor = null;
+    if(typeof state.zoom !== 'number') state.zoom = 1;
     state.nodes.forEach(n => {
       if(typeof n.bgColor === 'undefined') n.bgColor = null;
       if(typeof n.bw === 'undefined') n.bw = false;
       if(typeof n.noOutline === 'undefined') n.noOutline = false;
       if(typeof n.transparent === 'undefined') n.transparent = false;
+      if(typeof n.w !== 'number') n.w = null;
+      if(typeof n.h !== 'number') n.h = null;
     });
   }
 
@@ -178,7 +227,47 @@
   const nodePhotoInput = document.getElementById('nodePhotoInput');
   const btnCanvasColor = document.getElementById('btnCanvasColor');
   const canvasColorPopover = document.getElementById('canvasColorPopover');
+  const btnHelp = document.getElementById('btnHelp');
+  const helpOverlay = document.getElementById('helpOverlay');
+  const helpClose = document.getElementById('helpClose');
+  const btnZoomIn = document.getElementById('btnZoomIn');
+  const btnZoomOut = document.getElementById('btnZoomOut');
+  const btnZoomReset = document.getElementById('btnZoomReset');
+  const zoomLabel = document.getElementById('zoomLabel');
   let pendingImageNodeId = null;
+
+  // ---------- help modal ----------
+  btnHelp.addEventListener('click', () => helpOverlay.classList.add('open'));
+  helpClose.addEventListener('click', () => helpOverlay.classList.remove('open'));
+  helpOverlay.addEventListener('mousedown', e => { if(e.target === helpOverlay) helpOverlay.classList.remove('open'); });
+  document.addEventListener('keydown', e => { if(e.key === 'Escape' && helpOverlay.classList.contains('open')) helpOverlay.classList.remove('open'); });
+
+  // ---------- zoom ----------
+  function toCanvasCoords(clientX, clientY){
+    const rect = canvas.getBoundingClientRect();
+    return { x: (clientX - rect.left) / zoom, y: (clientY - rect.top) / zoom };
+  }
+  function initZoom(){
+    zoom = typeof state.zoom === 'number' ? state.zoom : 1;
+    canvas.style.transform = `scale(${zoom})`;
+    zoomLabel.textContent = Math.round(zoom * 100) + '%';
+  }
+  function setZoom(z){
+    zoom = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, z));
+    canvas.style.transform = `scale(${zoom})`;
+    zoomLabel.textContent = Math.round(zoom * 100) + '%';
+    state.zoom = zoom;
+    saveState();
+  }
+  btnZoomIn.addEventListener('click', () => setZoom(zoom + ZOOM_STEP));
+  btnZoomOut.addEventListener('click', () => setZoom(zoom - ZOOM_STEP));
+  btnZoomReset.addEventListener('click', () => setZoom(1));
+  viewport.addEventListener('wheel', e => {
+    if(e.ctrlKey || e.metaKey){
+      e.preventDefault();
+      setZoom(zoom - e.deltaY * 0.0015);
+    }
+  }, { passive: false });
 
   // shrink+compress an uploaded image before storing it, so trees with lots
   // of photos don't blow past the browser's storage limit
@@ -363,9 +452,14 @@
     const menu = document.createElement('div');
     menu.className = 'node-menu';
     menu.innerHTML = `
+      <div class="node-menu-title">Photo</div>
+      <div class="node-menu-photo-row">
+        <button type="button" class="menu-photo-btn">${node.image ? 'Change photo' : 'Add photo'}</button>
+        ${node.image ? `<button type="button" class="menu-photo-remove-btn danger-mini">Remove</button>` : ''}
+      </div>
       <div class="node-menu-title">Card background</div>
       <div class="swatches">
-        ${NODE_COLOR_PRESETS.map(c => `<button type="button" class="swatch${node.bgColor===c && !node.transparent?' active':''}" data-color="${c}" style="background:${c}"></button>`).join('')}
+        ${NODE_COLOR_PRESETS.map(c => `<button type="button" class="swatch${c===node.bgColor && !node.transparent?' active':''}" data-color="${c}" style="background:${c}"></button>`).join('')}
         <input type="color" value="${node.bgColor || '#FBF7EE'}" title="Custom color">
       </div>
       <label><input type="checkbox" class="opt-transparent" ${node.transparent?'checked':''}> See-through background</label>
@@ -375,6 +469,20 @@
     el.appendChild(menu);
     menu.addEventListener('mousedown', e => e.stopPropagation());
     menu.addEventListener('click', e => e.stopPropagation());
+
+    menu.querySelector('.menu-photo-btn').addEventListener('click', () => {
+      closeNodeMenu();
+      pendingImageNodeId = node.id;
+      nodePhotoInput.click();
+    });
+    const removePhotoBtn = menu.querySelector('.menu-photo-remove-btn');
+    if(removePhotoBtn){
+      removePhotoBtn.addEventListener('click', () => {
+        node.image = null;
+        saveState();
+        render();
+      });
+    }
 
     function refreshSwatchActive(){
       menu.querySelectorAll('.swatch').forEach(s => s.classList.toggle('active', s.dataset.color === node.bgColor && !node.transparent));
@@ -427,23 +535,24 @@
     el.dataset.id = node.id;
     el.style.left = node.x + 'px';
     el.style.top = node.y + 'px';
+    if(node.w) el.style.width = node.w + 'px';
+    if(node.h) el.style.height = node.h + 'px';
     el.innerHTML = `
       <button class="node-delete" title="Delete person">×</button>
       <button class="node-menu-btn" title="Card options">⋮</button>
-      <div class="node-photo" title="Click to add a photo">
-        ${node.image
-          ? `<img src="${node.image}"><button class="photo-remove" title="Remove photo">×</button>`
-          : `<span class="photo-placeholder">+ photo</span>`}
+      <div class="node-content">
+        ${node.image ? `<div class="node-photo-thumb" title="Click to change photo"><img src="${node.image}"></div>` : ''}
+        <div class="node-name" spellcheck="false">${escapeHtml(node.name)}</div>
+        <div class="node-note" spellcheck="false" data-placeholder="year or note">${escapeHtml(node.note || '')}</div>
       </div>
-      <div class="node-name" spellcheck="false">${escapeHtml(node.name)}</div>
-      <div class="node-note" spellcheck="false" data-placeholder="year or note">${escapeHtml(node.note || '')}</div>
       <div class="handle handle-bottom" title="Drag to connect a child"></div>
+      <div class="resize-handle" title="Drag to resize"></div>
     `;
     canvas.appendChild(el);
     applyNodeVisuals(node, el);
 
     el.addEventListener('mousedown', e => {
-      if(e.target.closest('.handle') || e.target.closest('.node-delete') || e.target.closest('.node-menu-btn') || e.target.closest('.node-menu') || e.target.closest('.node-photo') || e.target.isContentEditable) return;
+      if(e.target.closest('.handle') || e.target.closest('.resize-handle') || e.target.closest('.node-delete') || e.target.closest('.node-menu-btn') || e.target.closest('.node-menu') || e.target.closest('.node-photo-thumb') || e.target.isContentEditable) return;
       if(e.shiftKey){
         e.stopPropagation();
         toggleSelect(node.id);
@@ -462,16 +571,14 @@
       e.stopPropagation();
       toggleNodeMenu(node, el);
     });
-    const photoBox = el.querySelector('.node-photo');
-    photoBox.addEventListener('click', e => {
-      if(e.target.closest('.photo-remove')) return;
-      e.stopPropagation();
-      pendingImageNodeId = node.id;
-      nodePhotoInput.click();
-    });
-    const photoRemove = el.querySelector('.photo-remove');
-    if(photoRemove){
-      photoRemove.addEventListener('click', e => { e.stopPropagation(); node.image = null; saveState(); render(); });
+    const thumb = el.querySelector('.node-photo-thumb');
+    if(thumb){
+      thumb.addEventListener('click', e => {
+        e.stopPropagation();
+        closeNodeMenu();
+        pendingImageNodeId = node.id;
+        nodePhotoInput.click();
+      });
     }
     const nameEl = el.querySelector('.node-name');
     nameEl.addEventListener('dblclick', e => { e.stopPropagation(); enterEdit(nameEl, node, 'name'); });
@@ -480,6 +587,10 @@
     el.querySelector('.handle-bottom').addEventListener('mousedown', e => {
       e.stopPropagation();
       startConnectionDrag(e, node);
+    });
+    el.querySelector('.resize-handle').addEventListener('mousedown', e => {
+      e.stopPropagation();
+      startResize(e, node, el);
     });
   }
 
@@ -504,14 +615,14 @@
   // ---------- node dragging ----------
   function startNodeDrag(e, node, el){
     e.preventDefault();
-    const rect = canvas.getBoundingClientRect();
-    const offsetX = e.clientX - rect.left - node.x;
-    const offsetY = e.clientY - rect.top - node.y;
+    const start = toCanvasCoords(e.clientX, e.clientY);
+    const offsetX = start.x - node.x;
+    const offsetY = start.y - node.y;
     el.classList.add('dragging');
     function onMove(ev){
-      const r = canvas.getBoundingClientRect();
-      node.x = Math.max(0, ev.clientX - r.left - offsetX);
-      node.y = Math.max(0, ev.clientY - r.top - offsetY);
+      const c = toCanvasCoords(ev.clientX, ev.clientY);
+      node.x = Math.max(0, c.x - offsetX);
+      node.y = Math.max(0, c.y - offsetY);
       el.style.left = node.x + 'px';
       el.style.top = node.y + 'px';
       drawAllEdges();
@@ -528,7 +639,7 @@
 
   function startGroupDrag(e){
     e.preventDefault();
-    const startX = e.clientX, startY = e.clientY;
+    const start = toCanvasCoords(e.clientX, e.clientY);
     const ids = Array.from(selectedIds);
     const startPositions = {};
     ids.forEach(id => {
@@ -538,13 +649,14 @@
       if(el) el.classList.add('dragging');
     });
     function onMove(ev){
-      const dx = ev.clientX - startX, dy = ev.clientY - startY;
+      const c = toCanvasCoords(ev.clientX, ev.clientY);
+      const dx = c.x - start.x, dy = c.y - start.y;
       ids.forEach(id => {
         const n = state.nodes.find(x => x.id === id);
-        const start = startPositions[id];
-        if(!n || !start) return;
-        n.x = Math.max(0, start.x + dx);
-        n.y = Math.max(0, start.y + dy);
+        const s = startPositions[id];
+        if(!n || !s) return;
+        n.x = Math.max(0, s.x + dx);
+        n.y = Math.max(0, s.y + dy);
         const el = canvas.querySelector(`.node[data-id="${id}"]`);
         if(el){ el.style.left = n.x + 'px'; el.style.top = n.y + 'px'; }
       });
@@ -563,32 +675,50 @@
     document.addEventListener('mouseup', onUp);
   }
 
+  // ---------- resizing ----------
+  function startResize(e, node, el){
+    e.preventDefault();
+    const start = toCanvasCoords(e.clientX, e.clientY);
+    const startW = el.offsetWidth, startH = el.offsetHeight;
+    function onMove(ev){
+      const c = toCanvasCoords(ev.clientX, ev.clientY);
+      const w = Math.max(120, Math.round(startW + (c.x - start.x)));
+      const h = Math.max(70, Math.round(startH + (c.y - start.y)));
+      node.w = w; node.h = h;
+      el.style.width = w + 'px';
+      el.style.height = h + 'px';
+      drawAllEdges();
+    }
+    function onUp(){
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+      saveState();
+    }
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  }
+
   // ---------- rectangle (shift-drag) selection ----------
   function startRectSelect(e){
     e.preventDefault();
-    const rect = canvas.getBoundingClientRect();
-    const startX = e.clientX - rect.left, startY = e.clientY - rect.top;
+    const start = toCanvasCoords(e.clientX, e.clientY);
     const box = document.createElement('div');
     box.className = 'select-rect';
     canvas.appendChild(box);
-    function update(x2, y2){
-      box.style.left = Math.min(startX, x2) + 'px';
-      box.style.top = Math.min(startY, y2) + 'px';
-      box.style.width = Math.abs(x2 - startX) + 'px';
-      box.style.height = Math.abs(y2 - startY) + 'px';
+    function update(c2){
+      box.style.left = Math.min(start.x, c2.x) + 'px';
+      box.style.top = Math.min(start.y, c2.y) + 'px';
+      box.style.width = Math.abs(c2.x - start.x) + 'px';
+      box.style.height = Math.abs(c2.y - start.y) + 'px';
     }
-    update(startX, startY);
-    function onMove(ev){
-      const r = canvas.getBoundingClientRect();
-      update(ev.clientX - r.left, ev.clientY - r.top);
-    }
+    update(start);
+    function onMove(ev){ update(toCanvasCoords(ev.clientX, ev.clientY)); }
     function onUp(ev){
       document.removeEventListener('mousemove', onMove);
       document.removeEventListener('mouseup', onUp);
-      const r = canvas.getBoundingClientRect();
-      const x2 = ev.clientX - r.left, y2 = ev.clientY - r.top;
-      const bx1 = Math.min(startX, x2), bx2 = Math.max(startX, x2);
-      const by1 = Math.min(startY, y2), by2 = Math.max(startY, y2);
+      const c2 = toCanvasCoords(ev.clientX, ev.clientY);
+      const bx1 = Math.min(start.x, c2.x), bx2 = Math.max(start.x, c2.x);
+      const by1 = Math.min(start.y, c2.y), by2 = Math.max(start.y, c2.y);
       state.nodes.forEach(n => {
         const el = canvas.querySelector(`.node[data-id="${n.id}"]`);
         const w = el ? el.offsetWidth : NODE_W, h = el ? el.offsetHeight : NODE_H;
@@ -772,9 +902,8 @@
     tempLine.setAttribute('class', 'edge-temp');
     edgesSvg.appendChild(tempLine);
     function onMove(ev){
-      const rect = canvas.getBoundingClientRect();
-      const x = ev.clientX - rect.left, y = ev.clientY - rect.top;
-      tempLine.setAttribute('d', pathFor(start, { x, y }));
+      const c = toCanvasCoords(ev.clientX, ev.clientY);
+      tempLine.setAttribute('d', pathFor(start, c));
     }
     function onUp(ev){
       document.removeEventListener('mousemove', onMove);
@@ -796,7 +925,7 @@
 
   // ---------- adding people ----------
   function addNode(x, y, name = 'New person'){
-    const node = { id: 'n' + (state.nextId++), x, y, name, note: '', image: null, transparent: false, bgColor: null, bw: false, noOutline: false };
+    const node = { id: 'n' + (state.nextId++), x, y, name, note: '', image: null, transparent: false, bgColor: null, bw: false, noOutline: false, w: null, h: null };
     state.nodes.push(node);
     saveState(); render();
     requestAnimationFrame(() => {
@@ -808,14 +937,14 @@
   }
   canvas.addEventListener('dblclick', e => {
     if(e.target.closest('.node')) return;
-    const rect = canvas.getBoundingClientRect();
-    const x = Math.max(0, e.clientX - rect.left - NODE_W / 2);
-    const y = Math.max(0, e.clientY - rect.top - NODE_H / 2);
+    const c = toCanvasCoords(e.clientX, e.clientY);
+    const x = Math.max(0, c.x - NODE_W / 2);
+    const y = Math.max(0, c.y - NODE_H / 2);
     addNode(x, y);
   });
   btnAdd.addEventListener('click', () => {
-    const x = viewport.scrollLeft + viewport.clientWidth / 2 - NODE_W / 2;
-    const y = viewport.scrollTop + viewport.clientHeight / 2 - NODE_H / 2;
+    const x = (viewport.scrollLeft + viewport.clientWidth / 2) / zoom - NODE_W / 2;
+    const y = (viewport.scrollTop + viewport.clientHeight / 2) / zoom - NODE_H / 2;
     addNode(Math.max(0, x), Math.max(0, y));
   });
 
@@ -842,7 +971,7 @@
           state.edges.forEach(e => { if(!e.style) e.style = 'curve'; if(typeof e.label !== 'string') e.label = ''; });
           normalizeState();
           selectedIds.clear();
-          saveState(); applyBackground(); buildCanvasColorPopover(); render();
+          saveState(); applyBackground(); buildCanvasColorPopover(); initZoom(); render();
         } else {
           alert('That file does not look like a family tree export.');
         }
@@ -853,9 +982,9 @@
   });
   btnClear.addEventListener('click', () => {
     if(confirm('Clear the entire tree? This cannot be undone unless you saved a file first.')){
-      state = { nodes: [], edges: [], nextId: 1, background: null, canvasColor: null };
+      state = { nodes: [], edges: [], nextId: 1, background: null, canvasColor: null, zoom: 1 };
       selectedIds.clear();
-      saveState(); applyBackground(); buildCanvasColorPopover(); render();
+      saveState(); applyBackground(); buildCanvasColorPopover(); initZoom(); render();
     }
   });
 
@@ -884,6 +1013,7 @@
   loadState();
   applyBackground();
   buildCanvasColorPopover();
+  initZoom();
   render();
 </script>
 </body>
