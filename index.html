@@ -161,7 +161,7 @@
       <li><strong>Connect parent → child:</strong> drag the green dot under a card onto another card.</li>
       <li><strong>Edit name or note:</strong> double-click the text.</li>
       <li><strong>Card options:</strong> hover a card and click the ⋮ button for photo, background color, outline, black &amp; white (for someone who's passed), and see-through.</li>
-      <li><strong>Select several people:</strong> shift-click cards, or shift-drag an empty area to draw a selection box. Drag any selected card to move the group together, or use "Delete selected".</li>
+      <li><strong>Select several people:</strong> Ctrl-click (⌘-click on Mac) cards one by one, or shift-drag anywhere to draw a selection box around them. Drag any selected card to move the group together, drag a corner handle to resize the whole group proportionally, or use "Delete selected" / Delete key. Copy with Ctrl+C (⌘+C) and paste with Ctrl+V (⌘+V).</li>
       <li><strong>Style a connection line:</strong> click it for Curvy / Straight / Zigzag / 90° options, or to delete it.</li>
       <li><strong>Label a connection:</strong> double-click the line (e.g. "married", "divorced").</li>
       <li><strong>Zoom:</strong> use the +/− buttons, or hold Ctrl (⌘ on Mac) and scroll.</li>
@@ -396,9 +396,37 @@
     saveState(); render();
   }
   btnDeleteSelected.addEventListener('click', deleteSelected);
+
+  // ---------- copy / paste ----------
+  let clipboard = null;
+  function copySelected(){
+    if(!selectedIds.size) return;
+    const nodes = state.nodes.filter(n => selectedIds.has(n.id));
+    clipboard = { nodes: JSON.parse(JSON.stringify(nodes)) };
+  }
+  function pasteClipboard(){
+    if(!clipboard || !clipboard.nodes.length) return;
+    const offset = 30;
+    const newNodes = clipboard.nodes.map(n => ({ ...n, id: 'n' + (state.nextId++), x: n.x + offset, y: n.y + offset }));
+    state.nodes.push(...newNodes);
+    selectedIds = new Set(newNodes.map(n => n.id));
+    saveState(); render();
+  }
+
   document.addEventListener('keydown', e => {
     if(document.activeElement && document.activeElement.isContentEditable) return;
-    if((e.key === 'Delete' || e.key === 'Backspace') && selectedIds.size > 1){
+    const mod = e.ctrlKey || e.metaKey;
+    if(mod && e.key.toLowerCase() === 'c' && selectedIds.size){
+      e.preventDefault();
+      copySelected();
+      return;
+    }
+    if(mod && e.key.toLowerCase() === 'v' && clipboard){
+      e.preventDefault();
+      pasteClipboard();
+      return;
+    }
+    if((e.key === 'Delete' || e.key === 'Backspace') && selectedIds.size){
       e.preventDefault();
       deleteSelected();
     }
@@ -555,6 +583,11 @@
       if(e.target.closest('.handle') || e.target.closest('.resize-handle') || e.target.closest('.node-delete') || e.target.closest('.node-menu-btn') || e.target.closest('.node-menu') || e.target.closest('.node-photo-thumb') || e.target.isContentEditable) return;
       if(e.shiftKey){
         e.stopPropagation();
+        startRectSelect(e);
+        return;
+      }
+      if(e.ctrlKey || e.metaKey){
+        e.stopPropagation();
         toggleSelect(node.id);
         return;
       }
@@ -590,7 +623,11 @@
     });
     el.querySelector('.resize-handle').addEventListener('mousedown', e => {
       e.stopPropagation();
-      startResize(e, node, el);
+      if(selectedIds.size > 1 && selectedIds.has(node.id)){
+        startGroupResize(e, node, el);
+      } else {
+        startResize(e, node, el);
+      }
     });
   }
 
@@ -687,6 +724,43 @@
       node.w = w; node.h = h;
       el.style.width = w + 'px';
       el.style.height = h + 'px';
+      drawAllEdges();
+    }
+    function onUp(){
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+      saveState();
+    }
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  }
+
+  function startGroupResize(e, anchorNode, anchorEl){
+    e.preventDefault();
+    const start = toCanvasCoords(e.clientX, e.clientY);
+    const anchorStartW = anchorEl.offsetWidth, anchorStartH = anchorEl.offsetHeight;
+    const ids = Array.from(selectedIds);
+    const startSizes = {};
+    ids.forEach(id => {
+      const el = canvas.querySelector(`.node[data-id="${id}"]`);
+      if(el) startSizes[id] = { w: el.offsetWidth, h: el.offsetHeight };
+    });
+    function onMove(ev){
+      const c = toCanvasCoords(ev.clientX, ev.clientY);
+      const newAnchorW = Math.max(120, anchorStartW + (c.x - start.x));
+      const newAnchorH = Math.max(70, anchorStartH + (c.y - start.y));
+      const scaleW = newAnchorW / anchorStartW;
+      const scaleH = newAnchorH / anchorStartH;
+      ids.forEach(id => {
+        const n = state.nodes.find(x => x.id === id);
+        const s = startSizes[id];
+        if(!n || !s) return;
+        const w = Math.max(120, Math.round(s.w * scaleW));
+        const h = Math.max(70, Math.round(s.h * scaleH));
+        n.w = w; n.h = h;
+        const el = canvas.querySelector(`.node[data-id="${id}"]`);
+        if(el){ el.style.width = w + 'px'; el.style.height = h + 'px'; }
+      });
       drawAllEdges();
     }
     function onUp(){
